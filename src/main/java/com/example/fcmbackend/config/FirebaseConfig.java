@@ -7,29 +7,37 @@ import org.springframework.context.annotation.Configuration;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 
 @Configuration
 public class FirebaseConfig {
 
-    @PostConstruct
-    public void initialize() {
-        try {
-            FileInputStream serviceAccount = new FileInputStream("src/main/resources/service-account.json");
+	@PostConstruct
+	public void initialize() {
+	    try {
+	        String base64Config = System.getenv("FIREBASE_CONFIG_BASE64");
+	        if (base64Config == null || base64Config.isEmpty()) {
+	            System.err.println("❌ FIREBASE_CONFIG_BASE64 is not set.");
+	            return;
+	        }
 
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
+	        byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Config);
+	        InputStream serviceAccount = new ByteArrayInputStream(decodedBytes);
 
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
-            }
+	        FirebaseOptions options = FirebaseOptions.builder()
+	                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+	                .build();
 
-            System.out.println("✅ Firebase has been initialized.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+	        if (FirebaseApp.getApps().isEmpty()) {
+	            FirebaseApp.initializeApp(options);
+	            System.out.println("✅ Firebase has been initialized from environment variable.");
+	        }
+	    } catch (Exception e) {
+	        System.err.println("❌ Failed to initialize Firebase:");
+	        e.printStackTrace();
+	    }
+	}
+
 }
