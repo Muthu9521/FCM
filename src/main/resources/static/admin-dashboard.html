@@ -96,7 +96,8 @@
 
             try {
                 // --- API Call ---
-                const response = await fetch("http://localhost:8080/api/notify/topic", {
+				const baseUrl = window.location.origin;
+				const response = await fetch(`${baseUrl}/api/notify/topic`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
