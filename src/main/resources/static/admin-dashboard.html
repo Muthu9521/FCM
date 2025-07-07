@@ -96,8 +96,7 @@
 
             try {
                 // --- API Call ---
-				const baseUrl = window.location.origin;
-				const response = await fetch(`${baseUrl}/api/notify/topic`, {
+				const response = await fetch("https://fcm-845t.onrender.com/api/notify/topic", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
