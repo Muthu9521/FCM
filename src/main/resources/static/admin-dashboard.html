@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Notification Dashboard</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a cleaner look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main container for the form -->
+    <div class="w-full max-w-md mx-auto">
+        
+        <!-- Form Card -->
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">🚀 Admin Dashboard</h2>
+                <p class="text-gray-500">Send FCM Notifications to all users.</p>
+            </div>
+
+            <form id="notifyForm" class="space-y-6">
+                <!-- Title Input -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" id="title" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+                </div>
+
+                <!-- Message Textarea -->
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                    <textarea id="message" rows="4" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+                </div>
+
+                <!-- Image URL Input -->
+                <div>
+                    <label for="image" class="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+                    <input type="text" id="image" placeholder="https://example.com/image.jpg" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
+                        Send Notification
+                    </button>
+                </div>
+            </form>
+
+            <!-- Result/Status Message Box -->
+            <div id="result" class="mt-6 text-sm text-center font-medium p-4 rounded-lg hidden"></div>
+        </div>
+        
+        <footer class="text-center mt-6 text-xs text-gray-500">
+            <p>&copy; 2024 Admin Dashboard. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("notifyForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const title = document.getElementById("title").value;
+            const message = document.getElementById("message").value;
+            const image = document.getElementById("image").value;
+            
+            // Basic validation
+            if (!title || !message) {
+                alert("Title and Message are required.");
+                return;
+            }
+
+            const payload = {
+                title: title,
+                message: message,
+                image: image,
+                topic: "all"
+            };
+
+            const resultDiv = document.getElementById("result");
+            const submitButton = document.getElementById("submitButton");
+
+            // --- Update UI for loading state ---
+            submitButton.disabled = true;
+            submitButton.textContent = "Sending...";
+            submitButton.classList.add("opacity-75", "cursor-not-allowed");
+            
+            resultDiv.textContent = "Sending notification, please wait...";
+            resultDiv.className = "mt-6 text-sm text-center font-medium p-4 rounded-lg bg-yellow-100 text-yellow-800 block"; // Use 'block' to show
+
+            try {
+                // --- API Call ---
+                const response = await fetch("http://localhost:8080/api/notify/topic", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = await response.text();
+
+                if (response.ok) {
+                    // --- Success State ---
+                    resultDiv.textContent = "✅ Notification Sent Successfully: " + text;
+                    resultDiv.className = "mt-6 text-sm text-center font-medium p-4 rounded-lg bg-green-100 text-green-800 block";
+                } else {
+                    // --- Handle HTTP errors ---
+                    throw new Error(text || `HTTP error! status: ${response.status}`);
+                }
+
+            } catch (err) {
+                // --- Error State ---
+                console.error("Failed to send notification:", err);
+                resultDiv.textContent = `❌ Failed to send notification. ${err.message}`;
+                resultDiv.className = "mt-6 text-sm text-center font-medium p-4 rounded-lg bg-red-100 text-red-800 block";
+            } finally {
+                // --- Reset button state ---
+                submitButton.disabled = false;
+                submitButton.textContent = "Send Notification";
+                submitButton.classList.remove("opacity-75", "cursor-not-allowed");
+            }
+        });
+    </script>
+
+</body>
+</html>

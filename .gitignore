@@ -1,0 +1,6 @@
+# Ignore build artifacts
+target/
+*.jar
+
+# Ignore sensitive credentials
+src/main/resources/service-account.json
